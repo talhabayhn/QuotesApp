@@ -1,7 +1,5 @@
 package com.example.quotesmvvm.presentation.quotes
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -33,7 +31,7 @@ class QuotesViewModel(
     private val searchFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
     init {
-        load()
+        loadInitial()
         viewModelScope.launch {
             searchFlow.debounce(300).distinctUntilChanged().collect { q ->
                 _state.update { it.copy(query = q) }
@@ -44,23 +42,50 @@ class QuotesViewModel(
 
     fun onEvent(e: QuotesContract.Event) {
         when (e) {
-            QuotesContract.Event.Refresh -> load(force = true)
+            QuotesContract.Event.Refresh -> loadInitial(force = true)
             is QuotesContract.Event.Search -> searchFlow.tryEmit(e.text)
             is QuotesContract.Event.ClickItem -> navigateDetail(e.id)
             is QuotesContract.Event.ToggleFavorite -> toggleFav(e.id)
+            QuotesContract.Event.LoadMore -> loadMore()
         }
     }
 
-    private fun load(force: Boolean = false) = viewModelScope.launch {
+    private fun loadInitial(force: Boolean = false) = viewModelScope.launch {
         _state.update { it.copy(isLoading = true, error = null) }
-        val res = getQuotes()
+        val res = getQuotes(reset = true)   // 👈 useCase’e reset param ekle
         when (res) {
             is Result.Success -> {
-                val items = if (force) res.data else res.data
-                _state.update { it.copy(isLoading = false, items = items) }
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        items = res.data,
+                        hasMore = res.data.isNotEmpty()
+                    )
+                }
                 applyFilter()
             }
             is Result.Error -> _state.update { it.copy(isLoading = false, error = res.message) }
+            Result.Loading -> Unit
+        }
+    }
+
+    private fun loadMore() = viewModelScope.launch {
+        if (_state.value.isPaginating || !_state.value.hasMore) return@launch
+        _state.update { it.copy(isPaginating = true) }
+        val res = getQuotes(reset = false)   // 👈 reset=false → repo.skip++
+        when (res) {
+            is Result.Success -> {
+                val newItems = _state.value.items + res.data
+                _state.update {
+                    it.copy(
+                        isPaginating = false,
+                        items = newItems,
+                        hasMore = res.data.isNotEmpty()
+                    )
+                }
+                applyFilter()
+            }
+            is Result.Error -> _state.update { it.copy(isPaginating = false, error = res.message) }
             Result.Loading -> Unit
         }
     }

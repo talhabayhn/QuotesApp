@@ -7,7 +7,9 @@ object QuotesContract {
         val isLoading: Boolean = false,
         val items: List<Quote> = emptyList(),
         val error: String? = null,
-        val query: String = ""
+        val query: String = "",
+        val isPaginating: Boolean = false,
+        val hasMore: Boolean = true
     )
 
     sealed interface Event {
@@ -15,6 +17,7 @@ object QuotesContract {
         data class Search(val text: String) : Event
         data class ClickItem(val id: String) : Event
         data class ToggleFavorite(val id: String) : Event
+        object LoadMore : Event
     }
 
     sealed interface Effect {

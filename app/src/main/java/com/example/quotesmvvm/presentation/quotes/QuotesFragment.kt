@@ -52,6 +52,10 @@ class QuotesFragment : Fragment(R.layout.fragment_quotes) {
         }
         binding.textError.setOnClickListener { vm.onEvent(QuotesContract.Event.Refresh) }
 
+        binding.buttonLoadMore.setOnClickListener {
+            vm.onEvent(QuotesContract.Event.LoadMore)
+        }
+
         // state
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {

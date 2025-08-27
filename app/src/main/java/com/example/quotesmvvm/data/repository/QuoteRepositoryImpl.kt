@@ -8,13 +8,23 @@ import com.example.quotesmvvm.domain.repository.QuoteRepository
 class QuoteRepositoryImpl : QuoteRepository {
 
     private val api = RetrofitClient.api
+
     private val cache = mutableListOf<Quote>()
+    private var currentSkip = 0
+    private val limit = 10
 
     override suspend fun fetchQuotes(): List<Quote> {
-        if (cache.isNotEmpty()) return cache.toList()
-        val remote = api.getQuotes().quotes.map { it.toDomain() }
-        cache.clear(); cache.addAll(remote)
-        return remote
+        val remote = api.getQuotes(limit = limit , skip = currentSkip).quotes.map { it.toDomain() }
+        cache.addAll(remote)
+        currentSkip += limit
+        return cache.toList()
+    }
+
+    override suspend fun loadMore(): List<Quote> {
+        val remote = api.getQuotes(limit = limit, skip = currentSkip).quotes.map { it.toDomain() }
+        cache.addAll(remote)
+        currentSkip += limit
+        return cache.toList()
     }
 
     override suspend fun toggleFavorite(id: String): Quote? {

@@ -10,7 +10,7 @@ class GetQuotesUseCase(
     private val repository: QuoteRepository
 ) {
     // Tek sorumlu: quotes getir ve domain Result döndür
-    suspend operator fun invoke(): Result<List<Quote>> = withContext(Dispatchers.IO) {
+    suspend operator fun invoke(reset : Boolean): Result<List<Quote>> = withContext(Dispatchers.IO) {
         return@withContext try {
             val data = repository.fetchQuotes()
             Result.Success(data)
