@@ -6,7 +6,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.quotesmvvm.databinding.ItemQuoteBinding
 import com.example.quotesmvvm.domain.model.Quote
 
-class QuotesAdapter: RecyclerView.Adapter<QuotesAdapter.VH>() {
+class QuotesAdapter(
+    private val onClick: (Quote) -> Unit,
+    private val onToggleFavorite: (Quote) -> Unit
+): RecyclerView.Adapter<QuotesAdapter.VH>() {
 
     private val items = mutableListOf<Quote>()
 
@@ -23,10 +26,13 @@ class QuotesAdapter: RecyclerView.Adapter<QuotesAdapter.VH>() {
     override fun onBindViewHolder(holder: VH, position: Int) = holder.bind(items[position])
     override fun getItemCount(): Int = items.size
 
-    class VH(private val binding: ItemQuoteBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class VH(private val binding: ItemQuoteBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(q: Quote) {
             binding.textContent.text = "“${q.content}”"
             binding.textAuthor.text = "— ${q.author}"
+            binding.buttonFav.text   = if (q.isFavorite) "★" else "☆"
+            binding.root.setOnClickListener { onClick(q) }
+            binding.buttonFav.setOnClickListener { onToggleFavorite(q) }
         }
     }
 

@@ -13,10 +13,13 @@
         android:layout_height="wrap_content"
         android:text="Quote content"/>
 
-    <TextView
-        android:id="@+id/textAuthor"
-        android:paddingTop="6dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="- Author"/>
+    <LinearLayout
+        android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <TextView
+            android:id="@+id/textAuthor"
+            android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+        <Button
+            android:id="@+id/buttonFav"
+            android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="☆"/>
+    </LinearLayout>
 </LinearLayout>
